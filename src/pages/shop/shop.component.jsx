@@ -11,7 +11,11 @@ import { Route } from 'react-router-dom';
 import {
     default as CollectionsOverview
 } from '../../components/collections-overview/collections-overview.container';
-import CollectionPage from '../collection/collection.component';
+// We do the same with our CollectionPageContainer once we've
+// create it, and import it in as CollectionPage
+import {
+    default as CollectionPage
+} from '../collection/collection.container';
 
 const ShopPage = ({ match }) => (
   <div className='shop-page'>
