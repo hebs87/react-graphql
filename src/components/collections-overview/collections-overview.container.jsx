@@ -40,11 +40,15 @@ const CollectionsOverviewContainer = () => (
     <Query query={GET_COLLECTIONS}>
         {
             ({loading, error, data}) => {
-                // If loading is true, we render the Spinner
-                if (loading) return <Spinner />;
-                // If loading is false, we render the CollectionsOverview
-                // and pass in the data.collections as collections prop
-                return <CollectionsOverview collections={data.collections} />;
+                return (
+                    // If loading is true, we render the Spinner
+                    loading ?
+                        <Spinner />
+                        :
+                        // If loading is false, we render the CollectionsOverview
+                        // and pass in the data.collections as collections prop
+                        <CollectionsOverview collections={data.collections}/>
+                );
             }
         }
     </Query>
