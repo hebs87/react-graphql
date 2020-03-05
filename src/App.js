@@ -10,7 +10,16 @@ import ShopPage from './pages/shop/shop.component';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
 import CheckoutPage from './pages/checkout/checkout.component';
 
-import Header from './components/header/header.component';
+// When we make default imports, we have access in the
+// curly braces to the default alias. So we are essentially
+// saying we want to import whatever is exported by default
+// (HeaderContainer) in the relevant file, but we want to
+// call it Header instead
+// Doing this saves us having to change any other code in
+// our app
+import {
+  default as Header
+} from './components/header/header.container';
 
 import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 

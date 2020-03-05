@@ -19,6 +19,9 @@ import {store, persistor} from './redux/store';
 import './index.css';
 import App from './App';
 
+// Import our resolvers and typeDefs once written
+import { typeDefs, resolvers } from './graphql/resolvers';
+
 // Set up the connection to our backend using createHttpLink
 // which takes an object in which we specify the URI endpoint
 const httpLink = createHttpLink({
@@ -34,7 +37,27 @@ const cache = new InMemoryCache();
 // the link to the httpLink and the cache to the cache
 const client = new ApolloClient({
     link: httpLink,
-    cache
+    cache,
+    // Once we've written the typeDefs and resolvers, we pass
+    // them in as themselves here to give our client access to
+    // the mutations we just wrote
+    typeDefs,
+    resolvers
+});
+
+// To leverage local storage, we want to do this on the
+// client and leverage the cache. So, as soon as the client
+// is created for the first time, we immediately want to
+// write the data into the client. We need to instantiate it
+// with the data, which will have a value of an object with
+// all the keys that we want to store
+client.writeData({
+    data: {
+        // We want to replace the hidden value of the cart
+        // so we need to specify that here and set the
+        // default value to true
+        cartHidden: true
+    }
 });
 
 ReactDOM.render(

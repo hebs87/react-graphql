@@ -4,9 +4,18 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
 import { auth } from '../../firebase/firebase.utils';
-import CartIcon from '../cart-icon/cart-icon.component';
+
+// When we make default imports, we have access in the
+// curly braces to the default alias. So we are essentially
+// saying we want to import whatever is exported by default
+// (CartIconContainer) in the relevant file, but we want to
+// call it CartIcon instead
+// Doing this saves us having to change any other code in
+// our app
+import {
+    default as CartIcon
+} from '../cart-icon/cart-icon.container';
 import CartDropdown from '../cart-dropdown/cart-dropdown.component';
-import { selectCartHidden } from '../../redux/cart/cart.selectors';
 import { selectCurrentUser } from '../../redux/user/user.selectors';
 
 import { ReactComponent as Logo } from '../../assets/crown.svg';
@@ -42,7 +51,6 @@ const Header = ({ currentUser, hidden }) => (
 
 const mapStateToProps = createStructuredSelector({
   currentUser: selectCurrentUser,
-  hidden: selectCartHidden
 });
 
 export default connect(mapStateToProps)(Header);
