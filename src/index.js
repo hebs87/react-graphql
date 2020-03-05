@@ -56,7 +56,10 @@ client.writeData({
         // We want to replace the hidden value of the cart
         // so we need to specify that here and set the
         // default value to true
-        cartHidden: true
+        cartHidden: true,
+        // We set the initial state of the cartItems to an
+        // empty array
+        cartItems: []
     }
 });
 

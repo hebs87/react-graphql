@@ -1,4 +1,6 @@
 import { gql } from 'apollo-boost';
+// Import cart utils to enable adding item to cart
+import { addItemToCart } from './cart.utils';
 
 // We define the schema that we want to use which specifies the
 // mutations that we will have access to. This will be stored in
@@ -7,13 +9,26 @@ import { gql } from 'apollo-boost';
 // are currently defined in the backend - this will give us access
 // to them. If there are none then we won't get anything back, but
 // it prevents having to modify anything if any are defined in
-// future. We will then add our own in the curly braces after it
-// The first mutation is ToggleCartHidden, which will always be a
+// future. We will then add our own in the curly braces after it.
+// With the extend type Item, we are extending from the Item type
+// inside our database in our GraphQL server
+// The first Item type is the Item quantity, which will be an int -
+// we don't set the ! as it can be empty
+// The first Mutation is ToggleCartHidden, which will always be a
 // boolean - (! signifies it is mandatory)
+// The second Mutation is AddItemToCart, which will take an item,
+// the value of which will be the Item itself, and it will return
+// an array of Items - the Items may be empty, but the array is
+// mandatory
 // ***TYPE DEFINITIONS SHOULD BE CAPITALIZED***
 export const typeDefs = gql`
+    extend type Item {
+        quantity: Int
+    }
+
     extend type Mutation {
         ToggleCartHidden: Boolean!
+        AddItemToCart(item: Item!): [Item]!
     }
 `;
 
@@ -23,6 +38,14 @@ export const typeDefs = gql`
 export const GET_CART_HIDDEN = gql`
     {
         cartHidden @client
+    }
+`;
+
+// We need to read the cartItems value from our cache - the one we
+// want to set and mutate
+export const GET_CART_ITEMS = gql`
+    {
+        cartItems @client
     }
 `;
 
@@ -79,6 +102,40 @@ export const resolvers = {
 
             // Finally, we return the opposite cartHidden value
             return !cartHidden;
+        },
+
+        // The second mutation here is the addItemToCart, which takes
+        // the variable of item (declared in our typeDef, and this
+        // replaces _args), and also the cache
+        addItemToCart: (_root, {item}, {cache}) => {
+            // First, we want to read the GET_CART_ITEMS query
+            // We get this back as a data object, which has the
+            // cartItems value that we want, so we can destructure
+            // this off
+            const {cartItems} = cache.readQuery({
+                query: GET_CART_ITEMS
+            });
+
+            // We call our addItemToCart util function here and pass
+            // in the existing cartItems that we pulled from the cache,
+            // and also our item that we want to add
+            const newCartItems = addItemToCart(cartItems, item);
+
+            // After getting the value, we want to update the cache
+            // with the newCartItems. To do that, we use writeQuery.
+            // We say the query goes to the same query that we read
+            // from, and we want to update it with the data which is
+            // an object in which we specify that the cartItems value
+            // goes to the value of newCartItems
+            cache.writeQuery({
+                query: GET_CART_ITEMS,
+                data: {
+                    cartItems: newCartItems
+                }
+            });
+
+            // Finally, we return the newCartItems
+            return newCartItems;
         }
     }
 };
