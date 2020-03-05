@@ -1,15 +1,16 @@
 import React from "react";
-// Gets our mutation, gets info from GraphQL and then
-// gives it back to us as a function that we can
-// use in the relevant component, which has access
-// to the data we want
-// We also need our Query for the itemCount
-import {Mutation, Query} from 'react-apollo';
+// Allows us to wrap our exported component and
+// leverage the queries and mutation that we write,
+// which can then be passed into the Container
+// component as props
+import {graphql} from 'react-apollo';
+// Acts like the connect HOC
+import {flowRight} from 'lodash';
 // Allows us to make GraphQL requests
 import {gql} from 'apollo-boost';
 
 // Import the itemCount query to avoid repeating it here
-import { GET_ITEM_COUNT } from '../../graphql/resolvers';
+import {GET_ITEM_COUNT} from '../../graphql/resolvers';
 
 import CartIcon from "./cart-icon.component";
 
@@ -26,34 +27,42 @@ const TOGGLE_CART_HIDDEN = gql`
     }
 `;
 
-// The CartIconContainer will be a functional component
-// that returns our Mutation component that wraps around
-// the CartIcon component. The Mutation component takes a
-// mutation property equal to our previously defined mutation
-// Once we've written the GET_ITEM_COUNT query, we want to
-// wrap the Mutation component with the Query component
-const CartIconContainer = () => (
-    <Query query={GET_ITEM_COUNT}>
-        {
-            // We get the itemCount from the data and then pass it into
-            // the CartIcon component as the value for the itemCount prop
-            ({data: {itemCount}}) => (
-                // The Mutation gives us back a function. On that function,
-                // we get the actual value of the mutation, which is the
-                // function that changes the value of the cartHidden prop.
-                // We then pass this into the CartIcon component
-                <Mutation mutation={TOGGLE_CART_HIDDEN}>
-                    {
-                        toggleCartHidden =>
-                            <CartIcon
-                                toggleCartHidden={toggleCartHidden}
-                                itemCount={itemCount}
-                            />
-                    }
-                </Mutation>
-            )
-        }
-    </Query>
+// This is an alternative way of leveraging our queries
+// and mutations in our Container components by using the
+// flowRight and graphql functions, instead of the Query
+// and Mutation components
+// Once we pass the query or mutation into the graphql
+// function, our component will then have access to the
+// properties of that query or mutation - e.g. the itemCount
+// prop from the GET_ITEM_COUNT query - which can then be
+// passed into the component as a prop
+// In this instance, we want to pluck off the itemCount from
+// the data object on our props, and also the toggleCartHidden
+const CartIconContainer = ({data: {itemCount}, toggleCartHidden}) => (
+    <CartIcon
+        toggleCartHidden={toggleCartHidden}
+        itemCount={itemCount}
+    />
 );
 
-export default CartIconContainer;
+// flowRight is a function that will group in all of the
+// queries and mutations that we need to add to our
+// Container component. To do that, we use the graphql
+// function within the flowRight function. Then we pass
+// in the Container component to the return of flowRight
+export default flowRight(
+    // We call graphql and pass it either a query or mutation
+    // The name of the object we get back is data, but we can
+    // rename this if we want by using the method as we do
+    // with the mutation below
+    graphql(GET_ITEM_COUNT),
+    // When we pass in a mutation, it doesn't call it the
+    // name that we give it within the declared mutation,
+    // it calls it 'mutate' instead. In this instance, it
+    // calls toggleCartHidden mutate instead. To give it
+    // the correct name, we can pass in a config object as
+    // the second argument. This can take a number of
+    // different properties, but the main one we want is
+    // 'name', which will allow us to rename it
+    graphql(TOGGLE_CART_HIDDEN, {name: 'toggleCartHidden'})
+)(CartIconContainer);
