@@ -59,7 +59,9 @@ client.writeData({
         cartHidden: true,
         // We set the initial state of the cartItems to an
         // empty array
-        cartItems: []
+        cartItems: [],
+        // We set the initial state of the itemCount to 0
+        itemCount: 0
     }
 });
 

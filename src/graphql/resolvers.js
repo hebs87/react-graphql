@@ -1,6 +1,9 @@
 import { gql } from 'apollo-boost';
 // Import cart utils to enable adding item to cart
-import { addItemToCart } from './cart.utils';
+import {
+    addItemToCart,
+    getCartItemCount
+} from './cart.utils';
 
 // We define the schema that we want to use which specifies the
 // mutations that we will have access to. This will be stored in
@@ -46,6 +49,14 @@ export const GET_CART_HIDDEN = gql`
 export const GET_CART_ITEMS = gql`
     {
         cartItems @client
+    }
+`;
+
+// We need to read the itemCount value from our cache - the one we
+// want to set and mutate
+export const GET_ITEM_COUNT = gql`
+    {
+        itemCount @client
     }
 `;
 
@@ -121,12 +132,30 @@ export const resolvers = {
             // and also our item that we want to add
             const newCartItems = addItemToCart(cartItems, item);
 
-            // After getting the value, we want to update the cache
-            // with the newCartItems. To do that, we use writeQuery.
+            // After getting the value, we want to update the cache with
+            // both the newCartItems and the itemCount. To do that, we
+            // use writeQuery.
             // We say the query goes to the same query that we read
             // from, and we want to update it with the data which is
-            // an object in which we specify that the cartItems value
-            // goes to the value of newCartItems
+            // an object in which we specify that the relevant keys and
+            // values
+            // First, we set the itemCount, which will get the
+            // GET_ITEM_COUNT query and then the data will be an object
+            // in which the itemCount key will have a value where we call
+            // the getCartItemCount util function and pass in the
+            // newCartItems
+            // We don't need to read this first, as we only want to display
+            // it on the frontend
+            cache.writeQuery({
+                query: GET_ITEM_COUNT,
+                data: {
+                    itemCount: getCartItemCount(newCartItems)
+                }
+            });
+
+            // Then we set the cartItems, which will get the GET_CART_ITEMS
+            // query and then the data will be an object in which the
+            // cartItems key will have a value of newCartItems
             cache.writeQuery({
                 query: GET_CART_ITEMS,
                 data: {
